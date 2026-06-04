@@ -1,0 +1,27 @@
+model User {
+  id             String         @id @default(uuid())
+  email          String         @unique
+  passwordHash   String
+  createdAt      DateTime       @default(now())
+  refreshTokens  RefreshToken[]
+}
+
+model OAuthClient {
+  id           String @id             
+  secret       String              
+  redirectUris String[]              
+  scopes       String[]               
+}
+
+model RefreshToken {
+  id        String   @id @default(uuid())
+  tokenHash String   @unique          
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+  scope     String
+  expiresAt DateTime
+  revokedAt DateTime?
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+}
