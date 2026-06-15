@@ -1,0 +1,19 @@
+services:
+  postgres:
+    image: postgres
+    ports:
+      - '5432:5432'
+    environment:
+      POSTGRES_USER:
+      POSTGRES_PASSWORD:
+      POSTGRES_DB:
+  redis: 
+    image: redis
+    ports: 
+      - '6379:6379'
+    healthcheck:
+      test: ["executable", "arg","ping"]
+      interval: 1m30s
+      timeout: 30s
+      retries: 5
+      start_period: 30s
