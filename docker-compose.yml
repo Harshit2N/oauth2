@@ -3,17 +3,21 @@ services:
     image: postgres
     ports:
       - '5432:5432'
-    environment:
-      POSTGRES_USER:
-      POSTGRES_PASSWORD:
-      POSTGRES_DB:
+    env_file:
+      - ./server/.env
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $POSTGRES_USER -d $POSTGRES_DB"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
   redis: 
     image: redis
     ports: 
       - '6379:6379'
     healthcheck:
-      test: ["executable", "arg","ping"]
-      interval: 1m30s
-      timeout: 30s
+      test: ["CMD", "redis-cli","ping"]
+      interval: 10s
+      timeout: 5s
       retries: 5
-      start_period: 30s
+      start_period: 10s
