@@ -7,7 +7,7 @@ const secret = process.env.JWT_SECRET
 if (!secret) {
     throw new Error("secret not defined");
 }
-interface Payload {
+export interface Payload {
     userId: string;
     email: string
     scope: string;
