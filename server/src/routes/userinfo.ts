@@ -1,57 +1,66 @@
-import { Router, Request, Response } from 'express';
-import { db } from '../db';
-import { hashPassword } from '../lib/password';
-import { requireAuth } from '../middleware/requireAuth';
-
+import { Router, Request, Response } from "express";
+import { db } from '../db'
+import { generateToken } from "../lib/jwt";
+import { requireAuth } from "../middleware/requireAuth";
+import { hashPassword } from "../lib/password"
 const router = Router();
-
-// ─── GET /userinfo ────────────────────────────────────────────────────────────
-// Protected resource — requires valid access token
 router.get('/', requireAuth, async (req: Request, res: Response) => {
   const user = await db.user.findUnique({
-    where:  { id: req.user!.sub },
-    select: { id: true, email: true, createdAt: true },
-  });
-
+    where: { id: req.user!.sub },
+    select: { id: true, email: true, createdAt: true }
+  })
   if (!user) {
-    return res.status(404).json({ error: 'not_found' });
+    return res.status(400).json({
+      error: "User not found",
+      message: "User not found"
+    })
   }
-
   res.json({
-    sub:        user.id,
-    email:      user.email,
-    created_at: user.createdAt,
-    scope:      req.user!.scope,
-  });
-});
-
-// ─── POST /register ────────────────────────────────────────────────────────────
-// Creates a new user account (public endpoint for the demo)
+    sub: user.id,
+    email: user.email,
+    createdAt: user.createdAt,
+    scope: req.user!.scope
+  })
+})
 router.post('/register', async (req: Request, res: Response) => {
   const { email, password } = req.body;
-
   if (!email || !password) {
-    return res.status(400).json({ error: 'invalid_request', message: 'email and password required' });
+    return res.status(400).json({
+      error: "Invalid Request",
+      message: "email and password required"
+    })
   }
-
-  if (password.length < 8) {
-    return res.status(400).json({ error: 'invalid_request', message: 'Password must be at least 8 characters' });
+  if (password.length() < 8) {
+    return res.status(400).json({
+      error: "Invalid request",
+      message: "Password length must be atleast 8"
+    })
   }
-
-  const existing = await db.user.findUnique({ where: { email: email.toLowerCase() } });
+  const existing = await db.user.findUnique({
+    where: {
+      email: email.toLowerCase()
+    }
+  })
   if (existing) {
-    return res.status(409).json({ error: 'conflict', message: 'Email already registered' });
+    return res.status(400).json({
+      error: "Invalid user",
+      message: "User already exists"
+    })
   }
-
-  const user = await db.user.create({
+  const hashedPassword = await hashPassword(password)
+  const user = db.user.create({
     data: {
-      email:        email.toLowerCase(),
-      passwordHash: await hashPassword(password),
+      email: email.toLowerCase(),
+      passwordHash: hashedPassword,
     },
-    select: { id: true, email: true, createdAt: true },
-  });
-
-  res.status(201).json({ user });
-});
-
+    select: {
+      id: true,
+      email: true,
+      createdAt: true
+    }
+  })
+  res.status(201).json({
+    user
+  })
+})
 export default router;
