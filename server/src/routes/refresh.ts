@@ -5,16 +5,6 @@ import { rotateRefreshToken } from '../lib/tokens';
 
 const router = Router();
 
-// ─── POST /token/refresh ─────────────────────────────────────────────────────
-//
-// Body: { refresh_token: '<opaque token>' }
-//
-// Server:
-//   1. Finds the matching token by bcrypt-comparing against stored hashes
-//   2. If already revoked → reuse detected → revoke entire family → 401
-//   3. If valid → revoke old token, issue new refresh token (rotation)
-//   4. Issue new access token
-// ─────────────────────────────────────────────────────────────────────────────
 
 router.post('/', async (req: Request, res: Response) => {
   const { refresh_token } = req.body;
